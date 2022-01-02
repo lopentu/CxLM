@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=pythonvanilla
 
 data/
+.ipynb_checkpoints/
 
 ### PythonVanilla ###
 # Byte-compiled / optimized / DLL files
