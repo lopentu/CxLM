@@ -27,18 +27,29 @@ def get_masked_indices(masked_text):
 def get_masked_text(cx_inst, mask_field):
     text = list(chain.from_iterable(cx_inst["text"]))
     mask_dict = get_masked(cx_inst)
-    MASK_FIELDS = ("cx", "cslot", "vslot")
+    MASK_FIELDS = ("cx", "cslot", "vslot", "none", "random-cx", "random-cslot", "random-vslot")
     if mask_field not in MASK_FIELDS:
         raise ValueError("Unsupported mask fields")
-    target_mask = mask_dict[mask_field]
-    masked_text = [("[MASK]" if m else t) for t, m in zip(text, target_mask)]    
+    if mask_field == "none":
+        masked_text = text
+    elif mask_field.startswith("random"):        
+        tgt_field = mask_field.split("-")[1]
+        n_mask = sum(mask_dict[tgt_field])
+        target_mask = np.full(len(text), False)
+        mask_idxs = np.random.choice(len(text), min(len(text), n_mask), replace=False)
+        target_mask[mask_idxs] = True
+        masked_text = [("[MASK]" if m else t) for t, m in zip(text, target_mask)]                
+    else:        
+        target_mask = mask_dict[mask_field]
+        masked_text = [("[MASK]" if m else t) for t, m in zip(text, target_mask)]            
     masked_indices = get_masked_indices(masked_text)
     
     return {"masked": masked_text, 
             "text": text, "mindex": masked_indices}
 
 def batched_text(data, idxs, mask_field):
-    M = len(idxs)
+    M = len(idxs)    
+    
     m_data = [get_masked_text(data[i], mask_field) 
               for i in idxs]
     b_masked = [x["masked"] for x in m_data]
