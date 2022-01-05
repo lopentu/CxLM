@@ -74,19 +74,25 @@ def batched_text(data, idxs, mask_field):
     return {"masked": b_masked, "text": b_text, 
             "mindex": mindex_batched, "mindex_bool": mindex_bool}
 
-def batched_text_gan(data, idxs):
+def batched_text_gan(data, idxs, mask_slot="V"):
     M = len(idxs) 
     text = []
+    masked = []
     cx_tags = []
     slot_tags = []
     
     for i in idxs:
         cx_inst = data[i]
-        char_cx = characterize(cx_inst["text"], cx_inst["cnstr"])    
+        char_cx = characterize(cx_inst["text"], cx_inst["cnstr"])
         char_slots = characterize(cx_inst["text"], cx_inst["slot"])
-        text.append(list(cx_inst["text"]))
+        char_text = list(chain.from_iterable(cx_inst["text"]))
+        tgt_mask = [x.endswith(mask_slot) for x in char_slots]        
+        masked_text = [("[MASK]" if m else t) for t, m in zip(char_text, tgt_mask)]
+        
+        text.append(char_text)
+        masked.append(masked_text)
         cx_tags.append(char_cx)
-        slot_tags.append(char_slots)
+        slot_tags.append(char_slots)        
             
-    return {"text": text, 
+    return {"text": text, "masked": masked,
             "cx_tags": cx_tags, "slot_tags": slot_tags}
