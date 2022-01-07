@@ -1,6 +1,7 @@
 from itertools import chain
 import numpy as np
 from typing import List
+from . import token_mappings as tm
 
 def characterize(text: List[str], mask: List[str]):
     def transform_mask(mask, count):
@@ -54,6 +55,15 @@ def get_masked_text(cx_inst, mask_field):
     
     return {"masked": masked_text, 
             "text": text, "mindex": masked_indices}
+
+def get_equality_constraints(cxinst):
+    form_groups = tm.get_form_groups(cxinst)
+    tok_char_map = tm.get_tok_char_map(cxinst)
+    equalities = {}     
+    for elem, tok_idxs in form_groups.items():
+        if len(tok_idxs) == 1: continue
+        equalities[elem] = tuple(tok_char_map[x] for x in tok_idxs)
+    return equalities
 
 def batched_text(data, idxs, mask_field):
     M = len(idxs)    
