@@ -20,8 +20,10 @@ def get_form_offset(cxinst):
 def get_form_groups(cxinst):
     form = cxinst["cnstr_form"]
     form_groups = {}
-    form_offset = get_form_offset(cxinst)
-    for idx, elem in enumerate(form):
+    form_offset = get_form_offset(cxinst)    
+    if not form_offset:
+        raise ValueError("Cannot determine form_offset, possibly because variable phrase is involved")
+    for idx, elem in enumerate(form):        
         form_groups.setdefault(elem, [])\
                    .append(form_offset[idx])
     return form_groups
